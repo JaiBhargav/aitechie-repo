@@ -8,6 +8,10 @@ phases:
       - echo "Installing AWS CLI..."
       - pip install awscli --upgrade  # Ensure AWS CLI is installed and up-to-date
 
+      - echo "Installing dependencies..."
+      - sudo apt-get update  # Update package list
+      - sudo apt-get install -y zip unzip  # Install zip/unzip utilities
+
   pre_build:
     commands:
       - echo "Preparing build environment..."
