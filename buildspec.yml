@@ -22,8 +22,8 @@ phases:
   post_build:
     commands:
       - echo "Uploading artifacts to S3..."
-      - aws s3 cp frontend.zip s3://your-deployment-bucket/
-      - aws s3 cp lambda.zip s3://your-deployment-bucket/
+      - aws s3 cp frontend.zip s3://aitechie-codepipeline-artifacts/
+      - aws s3 cp lambda.zip s3://aitechie-codepipeline-artifacts/
       - echo "Build artifacts uploaded successfully."
 
 artifacts:
