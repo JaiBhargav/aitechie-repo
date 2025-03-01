@@ -10,20 +10,20 @@ phases:
 
       - echo "Installing dependencies..."
       - echo "Checking for zip and unzip..."
-      - if ! command -v zip &> /dev/null || ! command -v unzip &> /dev/null; then
-          echo "zip or unzip not found. Installing using pre-built binaries...";
+      - if ! command -v zip &> /dev/null || ! unzip --version &> /dev/null; then
+          echo "zip or unzip not found or not working. Installing using pre-built binaries...";
           curl -sLO https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64.tar.gz;
           tar -xzf yq_linux_amd64.tar.gz;
           mv yq_linux_amd64 /usr/local/bin/zip;
           mv yq_linux_amd64 /usr/local/bin/unzip;
           chmod +x /usr/local/bin/zip /usr/local/bin/unzip;
         else
-          echo "zip and unzip are already installed.";
+          echo "zip and unzip are already installed and working.";
         fi
 
       - echo "Installed dependencies:"
       - zip --version
-      - unzip --version
+      - /usr/local/bin/unzip --version || echo "unzip is not working."
 
   pre_build:
     commands:
@@ -58,7 +58,7 @@ phases:
       - cd ..
 
       - echo "Uploading artifacts to S3..."
-      - aws s3 cp build.zip s3://my-web-app-bucket/build.zip  # Upload to S3
+      - aws s3 cp build.zip s3://aitechie-bucket/build.zip  # Upload to S3
 
 artifacts:
   files:
