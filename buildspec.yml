@@ -1,0 +1,37 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11  # Python runtime for AWS CLI
+    commands:
+      - echo "Installing AWS CLI..."
+      - pip install awscli --upgrade  # Ensure AWS CLI is installed and up-to-date
+
+  pre_build:
+    commands:
+      - echo "Preparing build environment..."
+      - echo "AWS CLI version:"
+      - aws --version  # Verify AWS CLI installation
+
+  build:
+    commands:
+      - echo "Building application..."
+      # Add any build commands here (e.g., npm install, npm run build)
+      - echo "No build step required for static files."
+
+  post_build:
+    commands:
+      - echo "Preparing artifacts for deployment..."
+      - zip -r build.zip . -x "*.git*" "*.DS_Store*" "*.zip"  # Zip the application files
+
+      - echo "Uploading artifacts to S3..."
+      - aws deploy push --application-name MyWebApp --s3-location s3://my-web-app-bucket/build.zip --source .
+
+      - echo "Triggering CodeDeploy deployment..."
+      - aws deploy create-deployment --application-name MyWebApp --deployment-group-name MyWebApp-DeploymentGroup --s3-location bucket=my-web-app-bucket,key=build.zip,bundleType=zip
+
+artifacts:
+  files:
+    - 'build.zip'  # The artifact to be uploaded to S3
+  discard-paths: no
