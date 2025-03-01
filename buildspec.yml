@@ -3,64 +3,32 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      python: 3.11  # Python runtime for AWS CLI
+      nodejs: latest
+      python: latest
     commands:
-      - echo "Installing AWS CLI..."
-      - pip install awscli --upgrade  # Ensure AWS CLI is installed and up-to-date
-
-      - echo "Installing dependencies..."
-      - echo "Checking for zip and unzip..."
-      - if ! command -v zip &> /dev/null || ! unzip --version &> /dev/null; then
-          echo "zip or unzip not found or not working. Installing using pre-built binaries...";
-          curl -sLO https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64.tar.gz;
-          tar -xzf yq_linux_amd64.tar.gz;
-          mv yq_linux_amd64 /usr/local/bin/zip;
-          mv yq_linux_amd64 /usr/local/bin/unzip;
-          chmod +x /usr/local/bin/zip /usr/local/bin/unzip;
-        else
-          echo "zip and unzip are already installed and working.";
-        fi
-
-      - echo "Installed dependencies:"
-      - zip --version
-      - /usr/local/bin/unzip --version || echo "unzip is not working."
-
-  pre_build:
-    commands:
-      - echo "Preparing build environment..."
-      - echo "AWS CLI version:"
-      - aws --version  # Verify AWS CLI installation
-
-      - echo "Current directory:"
-      - pwd
-      - echo "Listing files:"
-      - ls -l
+      - echo "Updating system and installing dependencies..."
+      - yum update -y
+      - yum install -y zip python3-pip
+      - echo "Build environment setup completed."
 
   build:
     commands:
-      - echo "Building application..."
-      - echo "No build step required for static files."
+      - echo "Zipping frontend files..."
+      - zip -r frontend.zip css js index.html login.html signup.html main.html answers.html
+      - echo "Zipping Lambda function files..."
+      - zip -r lambda.zip lambda/ fetch-answer-lambda.zip fetch-question-lambda.zip notification-lambda.zip post-answer-lambda.zip post-question-lambda.zip userlogin-lambda.zip usersignup-lambda.zip userstore-lambda.zip welcome-email-lambda.zip
+      - echo "Build completed successfully."
 
   post_build:
     commands:
-      - echo "Preparing artifacts for deployment..."
-      - mkdir -p artifacts  # Create an artifacts directory
-
-      - echo "Copying static files (HTML, CSS, JS) to artifacts directory..."
-      - cp -r css js *.html artifacts/
-
-      - echo "Copying Lambda ZIP files to artifacts directory..."
-      - cp -r lambda/*.zip artifacts/lambda/
-
-      - echo "Zipping the artifacts for deployment..."
-      - cd artifacts
-      - zip -r ../build.zip .  # Create a build.zip file
-      - cd ..
-
       - echo "Uploading artifacts to S3..."
-      - aws s3 cp build.zip s3://aitechie-bucket/build.zip  # Upload to S3
+      - aws s3 cp frontend.zip s3://your-deployment-bucket/
+      - aws s3 cp lambda.zip s3://your-deployment-bucket/
+      - echo "Build artifacts uploaded successfully."
 
 artifacts:
   files:
-    - 'build.zip'  # The artifact to be uploaded to S3
-  discard-paths: no
+    - frontend.zip
+    - lambda.zip
+  discard-paths: yes
+
