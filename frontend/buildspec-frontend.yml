@@ -1,0 +1,13 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: latest
+  build:
+    commands:
+      - echo "Deploying frontend to EC2..."
+      - aws s3 cp . s3://your-frontend-bucket-name --recursive
+      - aws deploy create-deployment --application-name aitechie-frontend-app --deployment-group-name aitechie-frontend-group --s3-location bucket=your-frontend-bucket-name,bundleType=zip,key=frontend.zip
+artifacts:
+  files:
+    - '**/*'
