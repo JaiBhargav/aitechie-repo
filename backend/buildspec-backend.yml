@@ -1,0 +1,15 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+  build:
+    commands:
+      - echo "Deploying Lambda functions..."
+      - for zip in lambda/*.zip; do
+          function_name=$(basename "$zip" .zip);
+          aws lambda update-function-code --function-name $function_name --zip-file fileb://$zip;
+        done
+artifacts:
+  files:
+    - 'lambda/*.zip'
