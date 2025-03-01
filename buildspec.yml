@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      python: 3.11  # Python runtime for AWS CLI
+      python: 3.12  # Python runtime for AWS CLI
     commands:
       - echo "Installing AWS CLI..."
       - pip install awscli --upgrade  # Ensure AWS CLI is installed and up-to-date
@@ -27,4 +27,23 @@ phases:
   post_build:
     commands:
       - echo "Preparing artifacts for deployment..."
-      - zip -r build.zip . -x "*.git*" "
+      - mkdir -p artifacts  # Create an artifacts directory
+
+      # Copy static files (HTML, CSS, JS) to artifacts directory
+      - cp -r css js *.html artifacts/
+
+      # Copy Lambda ZIP files to artifacts directory
+      - cp -r lambda/*.zip artifacts/lambda/
+
+      # Zip the artifacts for deployment
+      - cd artifacts
+      - zip -r ../build.zip .  # Create a build.zip file
+      - cd ..
+
+      - echo "Uploading artifacts to S3..."
+      - aws s3 cp build.zip s3://my-web-app-bucket/build.zip  # Upload to S3
+
+artifacts:
+  files:
+    - 'build.zip'  # The artifact to be uploaded to S3
+  discard-paths: no
