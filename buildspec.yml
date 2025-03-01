@@ -3,14 +3,14 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      python: 3.12  # Python runtime for AWS CLI
+      python: 3.11  # Python runtime for AWS CLI
     commands:
       - echo "Installing AWS CLI..."
       - pip install awscli --upgrade  # Ensure AWS CLI is installed and up-to-date
 
       - echo "Installing dependencies..."
-      - sudo apt-get update  # Update package list
-      - sudo apt-get install -y zip unzip  # Install zip/unzip utilities
+      - apt-get update  # Update package list (no sudo needed)
+      - apt-get install -y zip unzip  # Install zip/unzip utilities (no sudo needed)
 
   pre_build:
     commands:
