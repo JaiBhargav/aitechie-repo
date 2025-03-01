@@ -4,31 +4,22 @@ phases:
   install:
     runtime-versions:
       nodejs: latest
-      python: latest
-    commands:
-      - echo "Updating system and installing dependencies..."
-      - yum update -y
-      - yum install -y zip python3-pip
-      - echo "Build environment setup completed."
-
   build:
     commands:
       - echo "Zipping frontend files..."
-      - zip -r frontend.zip css js index.html login.html signup.html main.html answers.html
-      - echo "Zipping Lambda function files..."
-      - zip -r lambda.zip lambda/ fetch-answer-lambda.zip fetch-question-lambda.zip notification-lambda.zip post-answer-lambda.zip post-question-lambda.zip userlogin-lambda.zip usersignup-lambda.zip userstore-lambda.zip welcome-email-lambda.zip
-      - echo "Build completed successfully."
-
+      - zip -r frontend.zip . -x "*.git*"
+      - echo "Zipping lambda files..."
+      - zip -r lambda.zip lambda/
   post_build:
     commands:
-      - echo "Uploading artifacts to S3..."
-      - aws s3 cp frontend.zip s3://aitechie-codepipeline-artifacts/
-      - aws s3 cp lambda.zip s3://aitechie-codepipeline-artifacts/
-      - echo "Build artifacts uploaded successfully."
+      - echo "Uploading frontend to S3..."
+      - aws s3 cp frontend.zip s3://your-deployment-bucket/
+      - echo "Uploading Lambda functions to S3..."
+      - aws s3 cp lambda.zip s3://your-deployment-bucket/
 
 artifacts:
   files:
     - frontend.zip
     - lambda.zip
-  discard-paths: yes
-
+    - appspec.yml
+    - scripts/*
