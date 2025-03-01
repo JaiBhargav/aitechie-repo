@@ -9,14 +9,21 @@ phases:
       - pip install awscli --upgrade  # Ensure AWS CLI is installed and up-to-date
 
       - echo "Installing dependencies..."
+      - echo "Checking package manager..."
       - if command -v yum &> /dev/null; then
-          yum update -y && yum install -y zip unzip;  # For Amazon Linux 2
+          echo "Using yum (Amazon Linux 2)...";
+          yum update -y && yum install -y zip unzip;
         elif command -v apt-get &> /dev/null; then
-          apt-get update && apt-get install -y zip unzip;  # For Ubuntu
+          echo "Using apt-get (Ubuntu)...";
+          apt-get update && apt-get install -y zip unzip;
         else
           echo "Unsupported package manager. Exiting...";
           exit 1;
         fi
+
+      - echo "Installed dependencies:"
+      - zip --version
+      - unzip --version
 
   pre_build:
     commands:
@@ -24,10 +31,14 @@ phases:
       - echo "AWS CLI version:"
       - aws --version  # Verify AWS CLI installation
 
+      - echo "Current directory:"
+      - pwd
+      - echo "Listing files:"
+      - ls -l
+
   build:
     commands:
       - echo "Building application..."
-      # Add any build commands here (e.g., npm install, npm run build)
       - echo "No build step required for static files."
 
   post_build:
@@ -35,13 +46,13 @@ phases:
       - echo "Preparing artifacts for deployment..."
       - mkdir -p artifacts  # Create an artifacts directory
 
-      # Copy static files (HTML, CSS, JS) to artifacts directory
+      - echo "Copying static files (HTML, CSS, JS) to artifacts directory..."
       - cp -r css js *.html artifacts/
 
-      # Copy Lambda ZIP files to artifacts directory
+      - echo "Copying Lambda ZIP files to artifacts directory..."
       - cp -r lambda/*.zip artifacts/lambda/
 
-      # Zip the artifacts for deployment
+      - echo "Zipping the artifacts for deployment..."
       - cd artifacts
       - zip -r ../build.zip .  # Create a build.zip file
       - cd ..
