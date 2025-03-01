@@ -9,8 +9,14 @@ phases:
       - pip install awscli --upgrade  # Ensure AWS CLI is installed and up-to-date
 
       - echo "Installing dependencies..."
-      - apt-get update  # Update package list (no sudo needed)
-      - apt-get install -y zip unzip  # Install zip/unzip utilities (no sudo needed)
+      - if command -v yum &> /dev/null; then
+          yum update -y && yum install -y zip unzip;  # For Amazon Linux 2
+        elif command -v apt-get &> /dev/null; then
+          apt-get update && apt-get install -y zip unzip;  # For Ubuntu
+        else
+          echo "Unsupported package manager. Exiting...";
+          exit 1;
+        fi
 
   pre_build:
     commands:
