@@ -9,16 +9,16 @@ phases:
       - pip install awscli --upgrade  # Ensure AWS CLI is installed and up-to-date
 
       - echo "Installing dependencies..."
-      - echo "Checking package manager..."
-      - if command -v yum &> /dev/null; then
-          echo "Using yum (Amazon Linux 2)...";
-          yum update -y && yum install -y zip unzip;
-        elif command -v dnf &> /dev/null; then
-          echo "Using dnf (Amazon Linux 2023)...";
-          dnf update -y && dnf install -y zip unzip;
+      - echo "Checking for zip and unzip..."
+      - if ! command -v zip &> /dev/null || ! command -v unzip &> /dev/null; then
+          echo "zip or unzip not found. Installing using pre-built binaries...";
+          curl -sLO https://github.com/mikefarah/yq/releases/download/v4.30.8/yq_linux_amd64.tar.gz;
+          tar -xzf yq_linux_amd64.tar.gz;
+          mv yq_linux_amd64 /usr/local/bin/zip;
+          mv yq_linux_amd64 /usr/local/bin/unzip;
+          chmod +x /usr/local/bin/zip /usr/local/bin/unzip;
         else
-          echo "Unsupported package manager. Exiting...";
-          exit 1;
+          echo "zip and unzip are already installed.";
         fi
 
       - echo "Installed dependencies:"
