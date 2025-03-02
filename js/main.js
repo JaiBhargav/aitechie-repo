@@ -71,8 +71,9 @@ async function loadQuestions() {
                 card.className = "question-card";
                 card.innerHTML = `
                     <h3>${question.title}</h3>
-                    <p>Posted by: ${question.username || "Anonymous"}</p>
+                    <p><b style="color: blue;">Posted by: ${question.username || "Anonymous"}</b></p>
                     <small>Date: ${new Date(question.createdTime).toLocaleString()}</small>
+
                 `;
 
                 // Make the question card clickable
