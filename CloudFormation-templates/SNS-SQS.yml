@@ -1,0 +1,139 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to create SNS Topics, SQS Queues, and necessary permissions for Lambda functions.'
+
+Resources:
+
+  # Lambda Execution Role (IAM Role)
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service: lambda.amazonaws.com
+      Policies:
+        - PolicyName: LambdaExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource:
+                  - !Ref UserSignupTopic
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource:
+                  - !GetAtt NotificationQueue.Arn
+                  - !GetAtt UserStoreQueue.Arn
+                  - !GetAtt WelcomeMessageQueue.Arn
+
+  # SNS Topics
+  UserSignupTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: UserSignupTopic
+
+  # SQS Queues
+  NotificationQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: NotificationQueue
+
+  UserStoreQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: UserStoreQueue
+
+  WelcomeMessageQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: WelcomeMessageQueue
+      # Set retention to 2 minutes for welcome message queue
+      MessageRetentionPeriod: 120
+
+  # SNS Topic Subscriptions to SQS Queues
+  UserStoreQueueSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: sqs
+      Endpoint: !GetAtt UserStoreQueue.Arn
+      TopicArn: !Ref UserSignupTopic
+      RawMessageDelivery: true
+
+  NotificationQueueSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: sqs
+      Endpoint: !GetAtt NotificationQueue.Arn
+      TopicArn: !Ref UserSignupTopic
+      RawMessageDelivery: true
+
+  # Permissions for SNS to send messages to SQS Queues
+  SQSPermissionForUserStoreQueue:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: SQSPermissionForUserStoreQueue
+      Roles:
+        - !Ref LambdaExecutionRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - sqs:SendMessage
+            Resource:
+              - !GetAtt UserStoreQueue.Arn
+
+  SQSPermissionForNotificationQueue:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: SQSPermissionForNotificationQueue
+      Roles:
+        - !Ref LambdaExecutionRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - sqs:SendMessage
+            Resource:
+              - !GetAtt NotificationQueue.Arn
+
+  # Allow SNS to send messages to the WelcomeMessageQueue
+  SQSPermissionForWelcomeMessageQueue:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: SQSPermissionForWelcomeMessageQueue
+      Roles:
+        - !Ref LambdaExecutionRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - sqs:SendMessage
+            Resource:
+              - !GetAtt WelcomeMessageQueue.Arn
+
+Outputs:
+
+  UserSignupTopicARN:
+    Description: "ARN of the UserSignup SNS Topic"
+    Value: !Ref UserSignupTopic
+
+  NotificationQueueURL:
+    Description: "URL of the Notification Queue"
+    Value: !Ref NotificationQueue
+
+  UserStoreQueueURL:
+    Description: "URL of the UserStore Queue"
+    Value: !Ref UserStoreQueue
+
+  WelcomeMessageQueueURL:
+    Description: "URL of the Welcome Message Queue"
+    Value: !Ref WelcomeMessageQueue

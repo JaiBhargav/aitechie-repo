@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to deploy an EC2 instance in a public subnet with Ubuntu and Apache2 installed.'
+
+Resources:
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-00bb6a80f01f03502 # Replace with a valid Ubuntu AMI ID
+      SubnetId: !ImportValue PublicSubnetID  # Import from VPC stack
+      SecurityGroupIds:
+        - !ImportValue PublicSecurityGroupID  # Import from VPC stack
+      KeyName: aitechie-key # Replace with your key pair
+      Tags:
+        - Key: Name
+          Value: AItechie-Frontend-EC2
+
+Outputs:
+  EC2InstancePublicIP:
+    Description: 'Public IP of the EC2 instance'
+    Value: !GetAtt MyEC2Instance.PublicIp

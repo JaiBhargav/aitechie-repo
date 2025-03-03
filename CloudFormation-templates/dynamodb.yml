@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to create DynamoDB tables for user data, questions, and answers with on-demand capacity mode.'
+
+Resources:
+
+  UserDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: userdata-table
+      AttributeDefinitions:
+        - AttributeName: userID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userID
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST  # On-demand capacity mode
+
+  QuestionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: questions-table
+      AttributeDefinitions:
+        - AttributeName: questionID
+          AttributeType: S
+        - AttributeName: userID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: questionID
+          KeyType: HASH
+        - AttributeName: userID
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST  # On-demand capacity mode
+
+  AnswersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: answers-table
+      AttributeDefinitions:
+        - AttributeName: answerID
+          AttributeType: S
+        - AttributeName: questionID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: answerID
+          KeyType: HASH
+        - AttributeName: questionID
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST  # On-demand capacity mode
+
+Outputs:
+  UserDataTableName:
+    Description: "The name of the User Data DynamoDB table"
+    Value: !Ref UserDataTable
+
+  QuestionsTableName:
+    Description: "The name of the Questions DynamoDB table"
+    Value: !Ref QuestionsTable
+
+  AnswersTableName:
+    Description: "The name of the Answers DynamoDB table"
+    Value: !Ref AnswersTable

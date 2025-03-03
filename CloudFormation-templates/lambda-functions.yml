@@ -1,0 +1,207 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to create 9 Lambda functions inside a private subnet with required IAM roles and permissions.'
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: AItechieLambdaExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:Scan
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ec2:CreateNetworkInterface
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DeleteNetworkInterface
+                Resource: '*'
+
+  # Define Lambda functions
+  UserSignupLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: user-signup
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: my-lambda-code-buckett
+        S3Key: usersignup-lambda.zip
+      VpcConfig:
+        SubnetIds:
+          - !ImportValue PrivateSubnetID
+        SecurityGroupIds:
+          - !ImportValue PrivateSecurityGroupID
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: "arn:aws:sns:us-east-1:123456789012:UserSignupTopic"
+
+  UserStoreLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: user-store
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: my-lambda-code-buckett
+        S3Key: userstore-lambda.zip
+      VpcConfig:
+        SubnetIds:
+          - !ImportValue PrivateSubnetID
+        SecurityGroupIds:
+          - !ImportValue PrivateSecurityGroupID
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: "userdata-table"
+
+  NotificationLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: notification
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: my-lambda-code-buckett
+        S3Key: notification-lambda.zip
+      VpcConfig:
+        SubnetIds:
+          - !ImportValue PrivateSubnetID
+        SecurityGroupIds:
+          - !ImportValue PrivateSecurityGroupID
+
+  WelcomeEmailLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: welcome-email
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: my-lambda-code-buckett
+        S3Key: welcome-email-lambda.zip
+      VpcConfig:
+        SubnetIds:
+          - !ImportValue PrivateSubnetID
+        SecurityGroupIds:
+          - !ImportValue PrivateSecurityGroupID
+
+  UserLoginLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: user-login
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: my-lambda-code-buckett
+        S3Key: userlogin-lambda.zip
+      VpcConfig:
+        SubnetIds:
+          - !ImportValue PrivateSubnetID
+        SecurityGroupIds:
+          - !ImportValue PrivateSecurityGroupID
+
+  PostQuestionLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: post-question
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: my-lambda-code-buckett
+        S3Key: post-question-lambda.zip
+      VpcConfig:
+        SubnetIds:
+          - !ImportValue PrivateSubnetID
+        SecurityGroupIds:
+          - !ImportValue PrivateSecurityGroupID
+
+  FetchQuestionLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: fetch-question
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: my-lambda-code-buckett
+        S3Key: fetch-question-lambda.zip
+      VpcConfig:
+        SubnetIds:
+          - !ImportValue PrivateSubnetID
+        SecurityGroupIds:
+          - !ImportValue PrivateSecurityGroupID
+
+  PostAnswerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: post-answer
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: my-lambda-code-buckett
+        S3Key: post-answer-lambda.zip
+      VpcConfig:
+        SubnetIds:
+          - !ImportValue PrivateSubnetID
+        SecurityGroupIds:
+          - !ImportValue PrivateSecurityGroupID
+
+  FetchAnswerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: fetch-answer
+      Handler: index.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: my-lambda-code-buckett
+        S3Key: fetch-answer-lambda.zip
+      VpcConfig:
+        SubnetIds:
+          - !ImportValue PrivateSubnetID
+        SecurityGroupIds:
+          - !ImportValue PrivateSecurityGroupID
+
+Outputs:
+  UserSignupLambdaARN:
+    Description: "ARN of the User Signup Lambda function"
+    Value: !GetAtt UserSignupLambda.Arn
+    Export:
+      Name: UserSignupLambdaARN
